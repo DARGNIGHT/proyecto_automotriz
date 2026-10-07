@@ -1,0 +1,260 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTO-CORE // GARAGE DIGITAL</title>
+    <style>
+        :root {
+            --bg-main: #0a0c10;
+            --bg-card: rgba(18, 22, 31, 0.9);
+            --bg-card-sub: #161b26;
+            --border-tech: #232936;
+            --accent-red: #e11d48;
+            --accent-red-hover: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #8b949e;
+            --badge-green: #10b981;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 24px 32px;
+            font-size: 13px;
+            background-image: radial-gradient(circle at 10% 20%, rgba(225, 29, 72, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(30, 41, 59, 0.3) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border-tech); padding-bottom: 14px; margin-bottom: 24px;
+        }
+        .user-tag { background: var(--bg-card); border: 1px solid var(--border-tech); padding: 6px 14px; border-radius: 4px; display: flex; gap: 12px; align-items: center; }
+        .btn-exit {
+            background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red);
+            padding: 5px 12px; font-size: 11px; font-weight: 800; border-radius: 2px; cursor: pointer;
+            text-transform: uppercase; text-decoration: none; display: inline-block;
+        }
+        .btn-exit:hover { background: var(--accent-red); color: #fff; }
+
+        .garage-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 25px;
+        }
+        .vehicle-card {
+            background: var(--bg-card); border: 1px solid var(--border-tech); border-radius: 4px; padding: 18px;
+            position: relative; overflow: hidden;
+        }
+        .vehicle-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent-red);
+        }
+        .placa-col {
+            background: #ffc400; color: #000; font-weight: 900; font-size: 16px; letter-spacing: 2px;
+            padding: 4px 12px; border-radius: 3px; border: 1px solid #78350f; display: inline-block; margin-bottom: 8px;
+        }
+
+        .stepper-container {
+            background: var(--bg-card); border: 1px solid var(--border-tech); border-radius: 4px; padding: 22px; margin-bottom: 25px;
+        }
+        .stepper {
+            display: flex; justify-content: space-between; position: relative; margin-top: 15px;
+        }
+        .stepper::before {
+            content: ''; position: absolute; top: 14px; left: 20px; right: 20px; height: 2px; background: var(--border-tech); z-index: 1;
+        }
+        .step { position: relative; z-index: 2; text-align: center; }
+        .step-circle {
+            width: 30px; height: 30px; border-radius: 50%; background: var(--bg-card-sub); border: 2px solid var(--border-tech);
+            margin: 0 auto 6px auto; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px;
+        }
+        .step.active .step-circle { border-color: var(--accent-red); background: var(--accent-red); color: #fff; }
+        .step.completed .step-circle { border-color: var(--badge-green); background: var(--badge-green); color: #000; }
+        .step-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-tech); border-radius: 4px; padding: 20px; }
+        label { display: block; margin-bottom: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        input, select, textarea {
+            width: 100%; background: var(--bg-card-sub); border: 1px solid var(--border-tech); color: #fff;
+            padding: 9px 12px; border-radius: 3px; font-size: 12px; margin-bottom: 12px;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-red); }
+        .btn-red {
+            width: 100%; background: var(--accent-red); color: #fff; border: none; padding: 11px; font-weight: 800;
+            border-radius: 3px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.8px;
+        }
+        .btn-red:hover { background: var(--accent-red-hover); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="background:var(--accent-red); color:#fff; padding:4px 8px; font-weight:800; border-radius:2px; font-size:10px;">AUTO-CORE</span>
+            <span style="font-weight:700; font-size:11px; text-transform:uppercase;">GARAGE DIGITAL // PROPIETARIO</span>
+        </div>
+        <div class="user-tag">
+            <span>CLIENTE: <strong id="lbl_user" style="color:#fff;">Usuario</strong></span>
+            <a href="/login" class="btn-exit" onclick="sessionStorage.clear(); localStorage.clear();">SALIR</a>
+        </div>
+    </header>
+
+    <h2 style="font-size:16px; font-weight:900; text-transform:uppercase; margin-bottom:12px;">1. Mis Vehículos en Garage</h2>
+    <div class="garage-grid" id="contenedor_garage"></div>
+
+    <div class="stepper-container">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="font-size:14px; font-weight:900; text-transform:uppercase;">2. Estado de Mi Servicio Activo</h2>
+            <span id="badge_tk" style="font-size:11px; color:var(--accent-red); font-weight:bold;">SIN SERVICIOS ACTIVOS</span>
+        </div>
+        <div class="stepper">
+            <div class="step active" id="st_1"><div class="step-circle">1</div><div class="step-label">Solicitado</div></div>
+            <div class="step" id="st_2"><div class="step-circle">2</div><div class="step-label">En Inspección</div></div>
+            <div class="step" id="st_3"><div class="step-circle">3</div><div class="step-label">En Reparación</div></div>
+            <div class="step" id="st_4"><div class="step-circle">4</div><div class="step-label">Listo / Entregado</div></div>
+        </div>
+    </div>
+
+    <div class="form-grid">
+        <div class="card">
+            <h3 style="font-size:12px; font-weight:800; color:var(--accent-red); text-transform:uppercase; margin-bottom:12px;">+ Vincular Nuevo Vehículo</h3>
+            <label>Placa</label><input type="text" id="v_placa" placeholder="ABC-123" maxlength="7">
+            <label>Marca</label><input type="text" id="v_marca" placeholder="Ej. Renault">
+            <label>Línea / Modelo</label><input type="text" id="v_modelo" placeholder="Ej. Sandero Stepway">
+            <label>Año</label><input type="number" id="v_anio" value="2022">
+            <label>Odómetro (Kilometraje Actual)</label><input type="number" id="v_odo" value="38500">
+            <button class="btn-red" onclick="registrarAuto()">Guardar en Mi Garage &rarr;</button>
+        </div>
+
+        <div class="card">
+            <h3 style="font-size:12px; font-weight:800; color:var(--accent-red); text-transform:uppercase; margin-bottom:12px;">+ Solicitar Servicio</h3>
+            <label>Selecciona tu Vehículo</label>
+            <select id="sel_auto"></select>
+            <label>Línea de Servicio</label>
+            <select id="srv_tipo">
+                <option value="Mantenimiento">Mantenimiento Preventivo / Correctivo</option>
+                <option value="Compra/Venta">Peritaje para Venta / Avalúo</option>
+                <option value="Garantia">Reclamación de Garantía</option>
+            </select>
+            <label>Motivo o Descripción de Falla</label>
+            <textarea id="srv_diag" rows="4" placeholder="Describe el ruido, servicio periódico o motivo..."></textarea>
+            <button class="btn-red" onclick="solicitarServicio()">Radicar Solicitud &rarr;</button>
+        </div>
+    </div>
+
+    <script>
+        try {
+            var sesionRaw = sessionStorage.getItem("usuario_autocore");
+            if (sesionRaw) {
+                var s = JSON.parse(sesionRaw);
+                if (s && s.nombre_completo) {
+                    document.getElementById('lbl_user').innerText = s.nombre_completo;
+                }
+            }
+        } catch(e) {
+            console.log("No hay sesion previa");
+        }
+
+        function registrarAuto() {
+            var p = document.getElementById('v_placa').value.trim().toUpperCase();
+            var m = document.getElementById('v_marca').value.trim();
+            var mod = document.getElementById('v_modelo').value.trim();
+            var a = parseInt(document.getElementById('v_anio').value);
+            var odo = parseInt(document.getElementById('v_odo').value || 0);
+
+            if (!p || !m || !mod) return alert("Completa los datos del auto");
+
+            fetch('/vehiculos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ placa: p, marca: m, modelo: mod, anio: a, odometro: odo, cliente_id: 1 })
+            }).then(r => r.json()).then(d => {
+                alert("VEHÍCULO VINCULADO CORRECTAMENTE");
+                cargarGarage();
+            }).catch(err => alert("Error al vincular vehiculo"));
+        }
+
+        function cargarGarage() {
+            fetch('/vehiculos').then(r => r.json()).then(autos => {
+                var c = document.getElementById('contenedor_garage');
+                var sel = document.getElementById('sel_auto');
+                if (!c || !sel) return;
+                c.innerHTML = ''; sel.innerHTML = '';
+
+                if (autos.length === 0) {
+                    c.innerHTML = '<p style="color:var(--text-muted);">No tienes vehículos registrados aún. Registra uno abajo.</p>';
+                    return;
+                }
+
+                autos.forEach(a => {
+                    c.innerHTML += 
+                        <div class="vehicle-card">
+                            <span class="placa-col"></span>
+                            <h4 style="font-size:14px; margin-bottom:4px;">  ()</h4>
+                            <p style="color:var(--text-muted); font-size:11px;">Odómetro: <strong> km</strong></p>
+                            <p style="color:var(--text-muted); font-size:11px;">Unidad ID: #</p>
+                        </div>
+                    ;
+                    sel.innerHTML += <option value=""> -  </option>;
+                });
+            }).catch(e => console.log(e));
+        }
+
+        function solicitarServicio() {
+            var sel = document.getElementById('sel_auto');
+            if (!sel || !sel.value) return alert("Primero debes vincular al menos un vehículo.");
+            var vid = parseInt(sel.value);
+            var srv = document.getElementById('srv_tipo').value;
+            var diag = document.getElementById('srv_diag').value.trim();
+            if (!diag) return alert("Escribe el motivo del servicio");
+
+            var nombreUser = document.getElementById('lbl_user').innerText || "Cliente";
+
+            fetch('/ordenes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    vehiculo_id: vid, tipo_servicio: srv, diagnostico: diag,
+                    estado: "Solicitado", costo_total: 0,
+                    rol_solicitante: "Cliente", nombre_solicitante: nombreUser
+                })
+            }).then(r => r.json()).then(d => {
+                alert("SOLICITUD RADICADA // TICKET #" + d.id);
+                cargarUltimaOrden();
+            }).catch(e => alert("Error al radicar solicitud"));
+        }
+
+        function cargarUltimaOrden() {
+            fetch('/ordenes').then(r => r.json()).then(ordenes => {
+                if (!ordenes || ordenes.length === 0) return;
+                var o = ordenes[0];
+                var badge = document.getElementById('badge_tk');
+                if (badge) badge.innerText = "TICKET #" + o.id + " - " + o.tipo_servicio.toUpperCase() + " (" + o.estado.toUpperCase() + ")";
+
+                document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 'completed'));
+                if (o.estado === 'Solicitado') {
+                    document.getElementById('st_1').classList.add('active');
+                } else if (o.estado.includes('Inspección')) {
+                    document.getElementById('st_1').classList.add('completed');
+                    document.getElementById('st_2').classList.add('active');
+                } else if (o.estado.includes('Reparación') || o.estado.includes('Diagnóstico')) {
+                    document.getElementById('st_1').classList.add('completed');
+                    document.getElementById('st_2').classList.add('completed');
+                    document.getElementById('st_3').classList.add('active');
+                } else {
+                    document.getElementById('st_1').classList.add('completed');
+                    document.getElementById('st_2').classList.add('completed');
+                    document.getElementById('st_3').classList.add('completed');
+                    document.getElementById('st_4').classList.add('completed');
+                }
+            }).catch(e => console.log(e));
+        }
+
+        window.onload = function() {
+            cargarGarage();
+            cargarUltimaOrden();
+        };
+    </script>
+</body>
+</html>

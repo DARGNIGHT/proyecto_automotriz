@@ -1,0 +1,380 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTO-CORE // TERMINAL COMERCIAL & ASESOR</title>
+    <style>
+        :root {
+            --bg-main: #0a0c10;
+            --bg-card: rgba(18, 22, 31, 0.9);
+            --bg-card-sub: #161b26;
+            --border-tech: #232936;
+            --accent-amber: #f59e0b;
+            --accent-amber-hover: #d97706;
+            --text-main: #f8fafc;
+            --text-muted: #8b949e;
+            --badge-green: #10b981;
+            --accent-blue: #38bdf8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main); color: var(--text-main); padding: 24px 32px; font-size: 13px;
+            background-image: radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-tech); padding-bottom: 14px; margin-bottom: 24px; }
+        .user-tag { background: var(--bg-card); border: 1px solid var(--border-tech); padding: 6px 14px; border-radius: 4px; display: flex; gap: 12px; align-items: center; }
+        .btn-exit {
+            background: transparent; border: 1px solid #ef4444; color: #ef4444;
+            padding: 4px 10px; font-size: 10px; font-weight: 800; border-radius: 2px;
+            cursor: pointer; text-transform: uppercase; text-decoration: none; display: inline-block;
+        }
+        .btn-exit:hover { background: #ef4444; color: #fff; }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 25px; }
+        .kpi-card { background: var(--bg-card); border: 1px solid var(--border-tech); border-radius: 4px; padding: 18px; }
+        .kpi-num { font-size: 26px; font-weight: 900; color: #34d399; margin-top: 4px; }
+
+        .work-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; margin-bottom: 25px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-tech); border-radius: 4px; padding: 20px; }
+        label { display: block; margin-bottom: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        input, select, textarea { width: 100%; background: var(--bg-card-sub); border: 1px solid var(--border-tech); color: #fff; padding: 9px 12px; border-radius: 3px; font-size: 12px; margin-bottom: 12px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-tech); }
+        th { background: var(--bg-card-sub); color: var(--text-muted); text-transform: uppercase; font-size: 10px; font-weight: 800; }
+
+        .badge-status { display: inline-block; padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+        .status-solicitado { background: rgba(245, 158, 11, 0.2); color: var(--accent-amber); border: 1px solid var(--accent-amber); }
+        .status-proceso { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8; }
+        .status-cerrado { background: rgba(16, 185, 129, 0.2); color: var(--badge-green); border: 1px solid var(--badge-green); }
+
+        .btn-amber { width: 100%; background: var(--accent-amber); color: #000; border: none; padding: 11px; font-weight: 900; border-radius: 3px; cursor: pointer; text-transform: uppercase; }
+        .btn-amber:hover { background: var(--accent-amber-hover); }
+        .btn-action-small { background: #261904; border: 1px solid var(--accent-amber); color: var(--accent-amber); padding: 4px 8px; font-size: 10px; font-weight: bold; border-radius: 2px; cursor: pointer; }
+        .btn-action-small:hover { background: var(--accent-amber); color: #000; }
+
+        .chat-box {
+            background: #0f141c; border: 1px solid var(--border-tech); border-radius: 3px; padding: 10px;
+            height: 120px; overflow-y: auto; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .chat-msg { padding: 6px 10px; border-radius: 3px; font-size: 11px; max-width: 85%; }
+        .chat-msg.tecnico { background: rgba(56, 189, 248, 0.15); border: 1px solid var(--accent-blue); align-self: flex-start; color: #e0f2fe; }
+        .chat-msg.asesor { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--accent-amber); align-self: flex-end; color: #fef3c7; }
+        .btn-send-asesor { background: var(--accent-amber); color: #000; border: none; padding: 8px 14px; font-weight: 800; font-size: 10px; text-transform: uppercase; border-radius: 3px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="background:var(--accent-amber); color:#000; padding:4px 8px; font-weight:900; border-radius:2px; font-size:10px;">AUTO-CORE</span>
+            <span style="font-weight:700; font-size:11px; text-transform:uppercase;">TERMINAL COMERCIAL & AUDITORÍA // ASESOR</span>
+        </div>
+        <div class="user-tag">
+            <span>ASESOR: <strong id="lbl_user" style="color:#fff;">Camila Asesora</strong></span>
+            <a href="/login" class="btn-exit" onclick="sessionStorage.clear(); localStorage.clear();">SALIR</a>
+        </div>
+    </header>
+
+    <div class="kpi-grid">
+        <div class="kpi-card"><span style="color:var(--text-muted); font-size:11px; font-weight:bold;">FACTURACIÓN TOTAL</span><div class="kpi-num" id="kpi_facturado"></div></div>
+        <div class="kpi-card"><span style="color:var(--text-muted); font-size:11px; font-weight:bold;">SOLICITUDES ENTRANTES PENDIENTES</span><div class="kpi-num" id="kpi_pendientes" style="color:var(--accent-amber);">0</div></div>
+        <div class="kpi-card"><span style="color:var(--text-muted); font-size:11px; font-weight:bold;">SERVICIOS LIQUIDADOS / CERRADOS</span><div class="kpi-num" id="kpi_liquidados">0</div></div>
+    </div>
+
+    <div class="work-layout">
+        <!-- BANDEJA DE TICKETS -->
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="font-size:12px; font-weight:800; color:var(--accent-amber); text-transform:uppercase;">Bandeja Comercial // Tickets Entrantes</h3>
+                <button onclick="cargarDatos()" style="background:transparent; border:1px solid var(--border-tech); color:var(--text-muted); padding:3px 8px; font-size:10px; cursor:pointer;">REFRESCAR</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticket</th><th>Línea</th><th>Placa</th><th>Diagnóstico</th><th>Estado</th><th>Liquidación</th><th>Gestión</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla_asesor"></tbody>
+            </table>
+        </div>
+
+        <!-- LIQUIDADOR Y CANAL DE NOVEDADES CON EL TÉCNICO -->
+        <div class="card">
+            <h3 style="font-size:12px; font-weight:800; color:var(--accent-amber); text-transform:uppercase; margin-bottom:12px;">Gestión de Ticket</h3>
+            <label>Ticket ID Seleccionado</label>
+            <input type="number" id="liq_id" readonly placeholder="Selecciona un ticket de la tabla">
+
+            <label>Asignar Técnico de Taller</label>
+            <select id="liq_tecnico">
+                <option value="Andres Mecanico (Tecnico 1)">Andres Mecanico (Elevador 01)</option>
+                <option value="Julian Torres (Tecnico 2)">Julian Torres (Diagnóstico OBD-II)</option>
+                <option value="Equipo General">Equipo de Taller General</option>
+            </select>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                    <label>Mano de Obra ($ COP)</label>
+                    <input type="number" id="liq_mo" value="120000" oninput="calcularTotal()">
+                </div>
+                <div>
+                    <label>Repuestos ($ COP)</label>
+                    <input type="number" id="liq_rep" value="180000" oninput="calcularTotal()">
+                </div>
+            </div>
+
+            <label>Total Liquidación con IVA (19%)</label>
+            <input type="text" id="liq_total" readonly value=",000">
+
+            <div style="display:flex; gap:10px; margin-bottom:16px;">
+                <button class="btn-amber" style="background:#1e293b; color:#38bdf8; border:1px solid #38bdf8;" onclick="asignarYPasarATaller()">Asignar a Taller &rarr;</button>
+                <button class="btn-amber" onclick="liquidarOrden()">Liquidar y Cerrar &rarr;</button>
+            </div>
+
+            <!-- CHAT DE NOVEDADES DEL TALLER -->
+            <div style="border-top:1px solid var(--border-tech); padding-top:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <label style="color:var(--accent-blue); margin:0;">Novedades del Técnico en Vivo</label>
+                    <button onclick="cargarMensajesAsesor()" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:9px;">ACTUALIZAR</button>
+                </div>
+                <div id="box_mensajes_asesor" class="chat-box">
+                    <p style="color:var(--text-muted); font-size:10px; margin:auto;">Selecciona un ticket para ver o responder al técnico.</p>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="input_respuesta_asesor" placeholder="Responder al técnico (ej. cliente autoriza cambio de disco)..." style="margin-bottom:0;">
+                    <button class="btn-send-asesor" onclick="enviarRespuestaAsesor()">Responder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDITORÍA INMUTABLE -->
+    <div class="card">
+        <h3 style="font-size:12px; font-weight:800; color:var(--accent-amber); text-transform:uppercase; margin-bottom:12px;">Registro Inmutable de Auditoría</h3>
+        <table>
+            <thead>
+                <tr><th>Log</th><th>Usuario</th><th>Rol</th><th>Servicio</th><th>Unidad</th><th>Acción Auditada</th><th>Timestamp</th></tr>
+            </thead>
+            <tbody id="tabla_auditoria"></tbody>
+        </table>
+    </div>
+
+    <script>
+        var ticketActivoId = null;
+
+        try {
+            var sesionRaw = sessionStorage.getItem("usuario_autocore");
+            if (sesionRaw) {
+                var s = JSON.parse(sesionRaw);
+                if (s && s.nombre_completo) {
+                    document.getElementById('lbl_user').innerText = s.nombre_completo;
+                }
+            }
+        } catch(e) {
+            console.log("Sesion cargada");
+        }
+
+        function calcularTotal() {
+            var mo = parseFloat(document.getElementById('liq_mo').value || 0);
+            var rep = parseFloat(document.getElementById('liq_rep').value || 0);
+            var total = (mo + rep) * 1.19;
+            document.getElementById('liq_total').value = "$" + Math.round(total).toLocaleString();
+        }
+
+        function cargarDatos() {
+            fetch('/vehiculos')
+            .then(function(r) { return r.json(); })
+            .then(function(vehiculos) {
+                var mapaPlacas = {};
+                for (var v = 0; v < vehiculos.length; v++) {
+                    mapaPlacas[vehiculos[v].id] = vehiculos[v].placa + " (" + vehiculos[v].marca + ")";
+                }
+
+                return fetch('/ordenes').then(function(resO) {
+                    return resO.json().then(function(ordenes) {
+                        return { vehiculos: mapaPlacas, ordenes: ordenes };
+                    });
+                });
+            })
+            .then(function(res) {
+                var ordenes = res.ordenes;
+                var mapaPlacas = res.vehiculos;
+                var tb = document.getElementById('tabla_asesor');
+                tb.innerHTML = '';
+
+                var fact = 0; var pend = 0; var liq = 0;
+
+                for (var i = 0; i < ordenes.length; i++) {
+                    var o = ordenes[i];
+                    var costo = parseFloat(o.costo_total || 0);
+                    fact += costo;
+
+                    var claseBadge = "status-solicitado";
+                    if (o.estado.indexOf("Finalizado") !== -1 || o.estado.indexOf("Cerrado") !== -1 || o.estado.indexOf("Liquidado") !== -1) {
+                        claseBadge = "status-cerrado";
+                        liq++;
+                    } else if (o.estado.indexOf("Inspección") !== -1 || o.estado.indexOf("Taller") !== -1) {
+                        claseBadge = "status-proceso";
+                        pend++;
+                    } else {
+                        pend++;
+                    }
+
+                    var infoVehiculo = mapaPlacas[o.vehiculo_id] ? mapaPlacas[o.vehiculo_id] : ("Unidad #" + o.vehiculo_id);
+
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = 
+                        '<td><strong>#TK-' + String(o.id).padStart(4, '0') + '</strong></td>' +
+                        '<td><span style="background:#1e293b; padding:2px 6px; border-radius:2px; font-size:9px; font-weight:bold;">' + o.tipo_servicio + '</span></td>' +
+                        '<td><strong style="color:#ffc400;">' + infoVehiculo + '</strong></td>' +
+                        '<td>' + o.diagnostico + '</td>' +
+                        '<td><span class="badge-status ' + claseBadge + '">' + o.estado + '</span></td>' +
+                        '<td style="color:#34d399; font-weight:bold;">$' + costo.toLocaleString() + '</td>' +
+                        '<td><button class="btn-action-small" onclick="seleccionarTicket(' + o.id + ')">Gestionar</button></td>';
+                    tb.appendChild(tr);
+                }
+
+                document.getElementById('kpi_facturado').innerText = "$" + fact.toLocaleString();
+                document.getElementById('kpi_pendientes').innerText = pend;
+                document.getElementById('kpi_liquidados').innerText = liq;
+            });
+
+            fetch('/trazabilidad')
+            .then(function(r) { return r.json(); })
+            .then(function(logs) {
+                var tb = document.getElementById('tabla_auditoria');
+                tb.innerHTML = '';
+                for (var j = 0; j < logs.length; j++) {
+                    var l = logs[j];
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = 
+                        '<td>#' + l.id + '</td>' +
+                        '<td>' + l.usuario + '</td>' +
+                        '<td><strong style="color:var(--accent-amber);">' + l.rol + '</strong></td>' +
+                        '<td>' + l.servicio + '</td>' +
+                        '<td>UNIDAD-' + l.vehiculo_id + '</td>' +
+                        '<td>' + l.accion + '</td>' +
+                        '<td>' + new Date(l.fecha).toLocaleString() + '</td>';
+                    tb.appendChild(tr);
+                }
+            });
+        }
+
+        function seleccionarTicket(id) {
+            ticketActivoId = id;
+            document.getElementById('liq_id').value = id;
+            cargarMensajesAsesor();
+        }
+
+        function cargarMensajesAsesor() {
+            if (!ticketActivoId) return;
+            var box = document.getElementById('box_mensajes_asesor');
+
+            fetch('/ordenes/' + ticketActivoId + '/mensajes')
+            .then(function(r) { return r.json(); })
+            .then(function(mensajes) {
+                box.innerHTML = '';
+                if (mensajes.length === 0) {
+                    box.innerHTML = '<p style="color:var(--text-muted); font-size:10px; margin:auto;">Sin novedades para este ticket.</p>';
+                    return;
+                }
+                for (var i = 0; i < mensajes.length; i++) {
+                    var m = mensajes[i];
+                    var clase = (m.rol === 'Tecnico') ? 'tecnico' : 'asesor';
+                    var hora = new Date(m.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
+                    var div = document.createElement('div');
+                    div.className = 'chat-msg ' + clase;
+                    div.innerHTML = '<strong>' + m.remitente + ' (' + m.rol + ') [' + hora + ']:</strong><br>' + m.mensaje;
+                    box.appendChild(div);
+                }
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        function enviarRespuestaAsesor() {
+            if (!ticketActivoId) return alert("Selecciona primero un ticket de la tabla.");
+            var txt = document.getElementById('input_respuesta_asesor').value.trim();
+            if (!txt) return;
+
+            var asesorNombre = document.getElementById('lbl_user').innerText || "Camila Asesora";
+
+            fetch('/ordenes/' + ticketActivoId + '/mensajes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    remitente: asesorNombre,
+                    rol: "Asesor",
+                    mensaje: txt
+                })
+            })
+            .then(function(res) {
+                if (res.ok) {
+                    document.getElementById('input_respuesta_asesor').value = '';
+                    cargarMensajesAsesor();
+                } else {
+                    alert("Error al enviar respuesta.");
+                }
+            });
+        }
+
+        function asignarYPasarATaller() {
+            var id = parseInt(document.getElementById('liq_id').value);
+            var tec = document.getElementById('liq_tecnico').value;
+            var asesorNombre = document.getElementById('lbl_user').innerText || "Asesor";
+
+            if (isNaN(id)) return alert("Selecciona un ticket");
+
+            fetch('/ordenes/' + id + '/operativo', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    estado: "En Inspección Técnica",
+                    rol_responsable: "Asesor",
+                    nombre_responsable: asesorNombre,
+                    tecnico_asignado: tec,
+                    observacion: "Asesor asignó técnico: " + tec
+                })
+            })
+            .then(function() {
+                alert("TICKET ASIGNADO A TALLER");
+                cargarDatos();
+            });
+        }
+
+        function liquidarOrden() {
+            var id = parseInt(document.getElementById('liq_id').value);
+            var mo = parseFloat(document.getElementById('liq_mo').value || 0);
+            var rep = parseFloat(document.getElementById('liq_rep').value || 0);
+            var total = Math.round((mo + rep) * 1.19);
+            var asesorNombre = document.getElementById('lbl_user').innerText || "Asesor";
+
+            if (isNaN(id)) return alert("Selecciona un ticket");
+
+            fetch('/ordenes/' + id + '/operativo', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    estado: "Liquidado y Cerrado",
+                    rol_responsable: "Asesor",
+                    nombre_responsable: asesorNombre,
+                    costo_total: total,
+                    observacion: "Liquidación comercial aprobada con IVA"
+                })
+            })
+            .then(function() {
+                alert("ORDEN LIQUIDADA Y CERRADA");
+                cargarDatos();
+            });
+        }
+
+        window.onload = function() {
+            calcularTotal();
+            cargarDatos();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTO-CORE // WORKSTATION TÉCNICA</title>
+    <style>
+        :root {
+            --bg-main: #0a0c10;
+            --bg-card: rgba(18, 22, 31, 0.9);
+            --bg-card-sub: #161b26;
+            --border-tech: #232936;
+            --accent-blue: #38bdf8;
+            --accent-blue-hover: #0ea5e9;
+            --text-main: #f8fafc;
+            --text-muted: #8b949e;
+            --accent-amber: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main); color: var(--text-main); padding: 24px 32px; font-size: 13px;
+            background-image: radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-tech); padding-bottom: 14px; margin-bottom: 24px; }
+        .user-tag { background: var(--bg-card); border: 1px solid var(--border-tech); padding: 6px 14px; border-radius: 4px; display: flex; gap: 12px; align-items: center; }
+        .btn-exit {
+            background: transparent; border: 1px solid #ef4444; color: #ef4444;
+            padding: 4px 10px; font-size: 10px; font-weight: 800; border-radius: 2px;
+            cursor: pointer; text-transform: uppercase; text-decoration: none; display: inline-block;
+        }
+        .btn-exit:hover { background: #ef4444; color: #fff; }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 25px; }
+        .kpi-card { background: var(--bg-card); border: 1px solid var(--border-tech); border-radius: 4px; padding: 18px; }
+        .kpi-num { font-size: 26px; font-weight: 900; color: var(--accent-blue); margin-top: 4px; }
+
+        .work-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border-tech); border-radius: 4px; padding: 20px; }
+        label { display: block; margin-bottom: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        input, select, textarea { width: 100%; background: var(--bg-card-sub); border: 1px solid var(--border-tech); color: #fff; padding: 9px 12px; border-radius: 3px; font-size: 12px; margin-bottom: 12px; }
+        
+        .order-card {
+            background: var(--bg-card-sub); border: 1px solid var(--border-tech);
+            padding: 14px; border-radius: 3px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .order-card:hover { border-color: var(--accent-blue); transform: translateX(3px); }
+        .order-card.selected { border-color: var(--accent-blue); background: #1e293b; }
+
+        .checklist-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-tech); }
+        .check-btn { background: #1e293b; border: 1px solid #334155; color: #fff; padding: 3px 8px; font-size: 10px; cursor: pointer; border-radius: 2px; }
+        .check-btn.ok { background: #065f46; border-color: #10b981; }
+        .check-btn.warn { background: #854d0e; border-color: #f59e0b; }
+        .check-btn.bad { background: #7f1d1d; border-color: #ef4444; }
+
+        .btn-blue { width: 100%; background: var(--accent-blue); color: #000; border: none; padding: 11px; font-weight: 900; border-radius: 3px; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        .btn-blue:hover { background: var(--accent-blue-hover); }
+
+        /* CANAL DE CHAT / NOVEDADES */
+        .chat-box {
+            background: #0f141c; border: 1px solid var(--border-tech); border-radius: 3px; padding: 10px;
+            height: 140px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .chat-msg {
+            padding: 6px 10px; border-radius: 3px; font-size: 11px; max-width: 85%;
+        }
+        .chat-msg.tecnico {
+            background: rgba(56, 189, 248, 0.15); border: 1px solid var(--accent-blue); align-self: flex-end; color: #e0f2fe;
+        }
+        .chat-msg.asesor {
+            background: rgba(245, 158, 11, 0.15); border: 1px solid var(--accent-amber); align-self: flex-start; color: #fef3c7;
+        }
+        .btn-send {
+            background: var(--accent-amber); color: #000; border: none; padding: 8px 14px; font-weight: 800;
+            font-size: 10px; text-transform: uppercase; border-radius: 3px; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <span style="background:var(--accent-blue); color:#000; padding:4px 8px; font-weight:900; border-radius:2px; font-size:10px;">AUTO-CORE</span>
+            <span style="font-weight:700; font-size:11px; text-transform:uppercase;">TALLER OPERATIVO // TÉCNICO MECÁNICO</span>
+        </div>
+        <div class="user-tag">
+            <span>TÉCNICO: <strong id="lbl_user" style="color:#fff;">Andres Mecanico</strong></span>
+            <a href="/login" class="btn-exit" onclick="sessionStorage.clear(); localStorage.clear();">SALIR</a>
+        </div>
+    </header>
+
+    <div class="kpi-grid">
+        <div class="kpi-card"><span style="color:var(--text-muted); font-size:11px; font-weight:bold;">EN ELEVADOR / REVISIÓN</span><div class="kpi-num" id="kpi_elevador">0</div></div>
+        <div class="kpi-card"><span style="color:var(--text-muted); font-size:11px; font-weight:bold;">PENDIENTES DE PIEZAS</span><div class="kpi-num">2</div></div>
+        <div class="kpi-card"><span style="color:var(--text-muted); font-size:11px; font-weight:bold;">FINALIZADAS HOY</span><div class="kpi-num" id="kpi_finalizadas">0</div></div>
+    </div>
+
+    <div class="work-layout">
+        <!-- COLA DE ATENCIÓN TÉCNICA -->
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="font-size:12px; font-weight:800; color:var(--accent-blue); text-transform:uppercase;">Cola de Trabajo en Taller</h3>
+                <button onclick="cargarOrdenes()" style="background:transparent; border:1px solid var(--border-tech); color:var(--text-muted); padding:3px 8px; font-size:10px; cursor:pointer;">REFRESCAR</button>
+            </div>
+            <div id="lista_ordenes_tecnico"></div>
+        </div>
+
+        <!-- HOJA DE INSPECCIÓN & CHAT DE NOVEDADES -->
+        <div class="card">
+            <h3 style="font-size:12px; font-weight:800; color:var(--accent-blue); text-transform:uppercase; margin-bottom:12px;">Hoja de Inspección y Dictamen</h3>
+            
+            <label>Orden Seleccionada</label>
+            <input type="text" id="tech_orden_id" readonly value="Selecciona una orden de la izquierda">
+
+            <div style="margin: 10px 0;">
+                <label>Checklist de Componentes Críticos</label>
+                <div class="checklist-item"><span>Sistema de Frenos & Pastillas</span><span class="check-btn ok">OK (80%)</span></div>
+                <div class="checklist-item"><span>Suspensión & Amortiguadores</span><span class="check-btn warn">Desgaste 45%</span></div>
+                <div class="checklist-item"><span>Fluidos (Aceite, Refrigerante)</span><span class="check-btn bad">Requiere Cambio</span></div>
+                <div class="checklist-item"><span>Escaneo OBD-II / Sensores</span><span class="check-btn ok">Sin DTC Activos</span></div>
+            </div>
+
+            <label>Repuestos e Insumos Consumidos</label>
+            <input type="text" id="tech_repuestos" placeholder="Ej. Filtro de aceite, Aceite 20W50, Pastillas de freno">
+
+            <label>Dictamen Técnico / Garantía / Peritaje</label>
+            <select id="tech_dictamen">
+                <option value="No Aplica (Mantenimiento Rutinario)">Mantenimiento Rutinario Completado</option>
+                <option value="Garantía Procedente (Falla de Fábrica)">Garantía Procedente (Falla de Fábrica)</option>
+                <option value="Garantía Rechazada (Desgaste / Mal Uso)">Garantía Rechazada (Desgaste o Mal Uso)</option>
+                <option value="Peritaje Favorable (Compra/Venta)">Peritaje Favorable (Compra / Venta)</option>
+            </select>
+
+            <button class="btn-blue" onclick="finalizarOrdenTecnica()">Completar Intervención Técnica &rarr;</button>
+
+            <!-- COMUNICACIÓN INMEDIATA CON ASESOR -->
+            <div style="margin-top:20px; border-top:1px solid var(--border-tech); padding-top:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <label style="color:var(--accent-amber); margin:0;">Comunicación Inmediata con Asesor // Novedades</label>
+                    <button onclick="cargarMensajes()" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:9px;">ACTUALIZAR CHAT</button>
+                </div>
+                <div id="box_mensajes" class="chat-box">
+                    <p style="color:var(--text-muted); font-size:10px; margin:auto;">Selecciona una orden para ver las novedades.</p>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="input_novedad" placeholder="Escribe la novedad al asesor (ej. disco de freno fisurado)..." style="margin-bottom:0;">
+                    <button class="btn-send" onclick="enviarNovedad()">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var ordenActivaId = null;
+
+        try {
+            var sesionRaw = sessionStorage.getItem("usuario_autocore");
+            if (sesionRaw) {
+                var s = JSON.parse(sesionRaw);
+                if (s && s.nombre_completo) {
+                    document.getElementById('lbl_user').innerText = s.nombre_completo;
+                }
+            }
+        } catch(e) {
+            console.log("Sesion cargada");
+        }
+
+        function cargarOrdenes() {
+            fetch('/vehiculos')
+            .then(function(resV) { return resV.json(); })
+            .then(function(vehiculos) {
+                var mapaPlacas = {};
+                for (var v = 0; v < vehiculos.length; v++) {
+                    mapaPlacas[vehiculos[v].id] = vehiculos[v].placa + " (" + vehiculos[v].marca + ")";
+                }
+
+                return fetch('/ordenes').then(function(resO) {
+                    return resO.json().then(function(ordenes) {
+                        return { vehiculos: mapaPlacas, ordenes: ordenes };
+                    });
+                });
+            })
+            .then(function(res) {
+                var data = res.ordenes;
+                var mapaPlacas = res.vehiculos;
+                var c = document.getElementById('lista_ordenes_tecnico');
+                c.innerHTML = '';
+
+                if (data.length === 0) {
+                    c.innerHTML = '<p style="color:var(--text-muted); padding:10px;">No hay órdenes registradas actualmente.</p>';
+                    return;
+                }
+
+                var enEle = 0;
+                var fin = 0;
+
+                for (var i = 0; i < data.length; i++) {
+                    var o = data[i];
+                    if (o.estado.indexOf('Finalizado') !== -1 || o.estado.indexOf('Cerrado') !== -1 || o.estado.indexOf('Liquidado') !== -1) {
+                        fin++;
+                    } else {
+                        enEle++;
+                    }
+
+                    var infoVehiculo = mapaPlacas[o.vehiculo_id] ? mapaPlacas[o.vehiculo_id] : ('Unidad #' + o.vehiculo_id);
+
+                    var div = document.createElement('div');
+                    div.className = 'order-card';
+                    div.setAttribute('data-id', o.id);
+                    div.onclick = (function(id) {
+                        return function() { seleccionarOrden(id); };
+                    })(o.id);
+
+                    div.innerHTML = 
+                        '<div style="display:flex; justify-content:space-between; margin-bottom:6px;">' +
+                            '<strong>#TK-' + String(o.id).padStart(4, '0') + ' [' + o.tipo_servicio + ']</strong>' +
+                            '<span style="color:var(--accent-blue); font-weight:bold; font-size:11px;">' + o.estado + '</span>' +
+                        '</div>' +
+                        '<div style="color:#ffc400; font-weight:bold; font-size:11px; margin-bottom:4px;">' + infoVehiculo + '</div>' +
+                        '<p style="color:var(--text-muted); font-size:11px; line-height:1.4;">' + o.diagnostico + '</p>';
+
+                    c.appendChild(div);
+                }
+
+                document.getElementById('kpi_elevador').innerText = enEle;
+                document.getElementById('kpi_finalizadas').innerText = fin;
+            })
+            .catch(function(err) {
+                console.error("Error al cargar ordenes:", err);
+            });
+        }
+
+        function seleccionarOrden(id) {
+            ordenActivaId = id;
+            document.getElementById('tech_orden_id').value = id;
+            var cards = document.querySelectorAll('.order-card');
+            for (var i = 0; i < cards.length; i++) {
+                cards[i].classList.remove('selected');
+                if (parseInt(cards[i].getAttribute('data-id')) === id) {
+                    cards[i].classList.add('selected');
+                }
+            }
+            cargarMensajes();
+        }
+
+        function cargarMensajes() {
+            if (!ordenActivaId) return;
+            var box = document.getElementById('box_mensajes');
+
+            fetch('/ordenes/' + ordenActivaId + '/mensajes')
+            .then(function(r) { return r.json(); })
+            .then(function(mensajes) {
+                box.innerHTML = '';
+                if (mensajes.length === 0) {
+                    box.innerHTML = '<p style="color:var(--text-muted); font-size:10px; margin:auto;">Sin novedades registradas para este ticket.</p>';
+                    return;
+                }
+                for (var i = 0; i < mensajes.length; i++) {
+                    var m = mensajes[i];
+                    var clase = (m.rol === 'Tecnico') ? 'tecnico' : 'asesor';
+                    var hora = new Date(m.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
+                    var div = document.createElement('div');
+                    div.className = 'chat-msg ' + clase;
+                    div.innerHTML = '<strong>' + m.remitente + ' (' + m.rol + ') [' + hora + ']:</strong><br>' + m.mensaje;
+                    box.appendChild(div);
+                }
+                box.scrollTop = box.scrollHeight;
+            })
+            .catch(function(e) { console.error("Error al cargar mensajes", e); });
+        }
+
+        function enviarNovedad() {
+            if (!ordenActivaId) return alert("Selecciona primero una orden de trabajo.");
+            var txt = document.getElementById('input_novedad').value.trim();
+            if (!txt) return;
+
+            var tecNombre = document.getElementById('lbl_user').innerText || "Andres Mecanico";
+
+            fetch('/ordenes/' + ordenActivaId + '/mensajes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    remitente: tecNombre,
+                    rol: "Tecnico",
+                    mensaje: txt
+                })
+            })
+            .then(function(res) {
+                if (res.ok) {
+                    document.getElementById('input_novedad').value = '';
+                    cargarMensajes();
+                } else {
+                    alert("Error al enviar la novedad.");
+                }
+            })
+            .catch(function(err) { alert("Error de red"); });
+        }
+
+        function finalizarOrdenTecnica() {
+            var id = parseInt(document.getElementById('tech_orden_id').value);
+            var rep = document.getElementById('tech_repuestos').value.trim();
+            var dic = document.getElementById('tech_dictamen').value;
+            var tecNombre = document.getElementById('lbl_user').innerText || "Técnico Taller";
+
+            if (isNaN(id)) return alert("Selecciona primero una orden.");
+
+            fetch('/ordenes/' + id + '/operativo', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    estado: "Técnicamente Finalizado",
+                    rol_responsable: "Tecnico",
+                    nombre_responsable: tecNombre,
+                    checklist_tecnico: "Inspección Completa Validada",
+                    repuestos_usados: rep ? rep : "Ninguno",
+                    dictamen_garantia: dic,
+                    observacion: "Intervención técnica completada: " + dic
+                })
+            })
+            .then(function(res) {
+                if (res.ok) {
+                    alert("¡INTERVENCIÓN TÉCNICA REGISTRADA!\nOrden en estado 'Técnicamente Finalizado'.");
+                    cargarOrdenes();
+                } else {
+                    alert("Error al actualizar la orden.");
+                }
+            });
+        }
+
+        window.onload = function() {
+            cargarOrdenes();
+        };
+    </script>
+</body>
+</html>
