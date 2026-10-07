@@ -7,7 +7,10 @@ import app.models as models
 from app.routes import router
 import bcrypt
 
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Aviso BD al iniciar: {e}")
 
 def inicializar_usuarios():
     db = SessionLocal()
