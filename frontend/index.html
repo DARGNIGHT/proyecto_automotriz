@@ -1,0 +1,557 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AUTO-CORE // ACCESO Y GESTIÓN AUTOMOTRIZ</title>
+    <style>
+        :root {
+            --bg-main: #0a0c10;
+            --bg-card: #12161f;
+            --bg-card-sub: #181d28;
+            --border-tech: #232936;
+            --accent-red: #e11d48;
+            --accent-red-hover: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #8b949e;
+            --badge-green: #10b981;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 20px;
+            font-size: 13px;
+        }
+
+        #login_overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 12, 16, 0.96);
+            display: flex; justify-content: center; align-items: center; z-index: 999;
+        }
+        .login-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-tech);
+            padding: 26px; border-radius: 4px; width: 380px;
+        }
+        .auth-tabs {
+            display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border-tech); padding-bottom: 8px;
+        }
+        .auth-tab {
+            background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 4px 6px;
+        }
+        .auth-tab.active { color: var(--accent-red); border-bottom: 2px solid var(--accent-red); }
+        .login-presets {
+            margin-top: 15px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-tech); padding-top: 10px;
+        }
+        .preset-badge {
+            cursor: pointer; background: var(--bg-card-sub); padding: 3px 6px; border-radius: 2px; margin: 2px; display: inline-block; color: #fff;
+        }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border-tech); padding-bottom: 12px; margin-bottom: 20px;
+            text-transform: uppercase; font-size: 11px; font-weight: 700;
+        }
+        .user-tag { background: var(--bg-card); border: 1px solid var(--border-tech); padding: 5px 12px; border-radius: 4px; display: flex; gap: 10px; align-items: center; }
+        .btn-logout { background: transparent; border: 1px solid var(--accent-red); color: var(--accent-red); padding: 2px 6px; font-size: 10px; cursor: pointer; border-radius: 2px; }
+
+        .hero { margin-bottom: 25px; }
+        .hero h1 { font-size: 28px; font-weight: 900; line-height: 1.1; text-transform: uppercase; }
+        .hero .highlight { display: inline-block; background-color: var(--accent-red); color: #fff; padding: 2px 10px; margin-top: 6px; font-size: 22px; font-weight: 900; border-radius: 2px; }
+        .hero-sub { color: var(--text-muted); font-size: 11px; margin-top: 8px; text-transform: uppercase; }
+
+        .grid-forms { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-tech); border-radius: 4px; padding: 18px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-tech); padding-bottom: 8px; margin-bottom: 12px; text-transform: uppercase; font-size: 11px; font-weight: 800; }
+        .card-header span { color: var(--accent-red); }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 4px; font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); }
+        input, select, textarea { width: 100%; background-color: var(--bg-card-sub); border: 1px solid var(--border-tech); color: var(--text-main); padding: 8px 10px; border-radius: 3px; font-size: 12px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-red); }
+        .input-placa { font-size: 16px; font-weight: 900; text-align: center; letter-spacing: 3px; text-transform: uppercase; color: #ffedd5; background: #000; border: 1px solid #78350f; }
+
+        button.btn-action { width: 100%; background-color: var(--accent-red); color: #fff; border: none; padding: 10px 14px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-radius: 3px; cursor: pointer; margin-top: 8px; }
+        button.btn-action:hover { background-color: var(--accent-red-hover); }
+
+        .table-panel { background-color: var(--bg-card); border: 1px solid var(--border-tech); border-radius: 4px; padding: 18px; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border-tech); }
+        th { background-color: var(--bg-card-sub); color: var(--text-muted); text-transform: uppercase; font-size: 10px; }
+        .status-badge { display: inline-block; padding: 2px 6px; border-radius: 2px; font-size: 9px; font-weight: 700; text-transform: uppercase; border: 1px solid var(--accent-red); color: var(--accent-red); }
+        .role-tag { display: inline-block; padding: 2px 5px; border-radius: 2px; font-size: 9px; font-weight: 800; text-transform: uppercase; background: #232936; color: #fff; }
+        .btn-status { background: #1e293b; color: #38bdf8; border: 1px solid #38bdf8; padding: 3px 6px; font-size: 9px; cursor: pointer; border-radius: 2px; font-weight: bold; margin-right: 4px; }
+        .btn-status:hover { background: #38bdf8; color: #000; }
+        footer { border-top: 1px solid var(--border-tech); padding-top: 12px; display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <!-- OVERLAY LOGIN / REGISTRO -->
+    <div id="login_overlay">
+        <div class="login-box">
+            <div class="auth-tabs">
+                <button id="tab_login" class="auth-tab active" onclick="mostrarTab('login')">Ingresar</button>
+                <button id="tab_registro" class="auth-tab" onclick="mostrarTab('registro')">Crear Usuario</button>
+            </div>
+
+            <!-- FORM LOGIN -->
+            <div id="form_login_container">
+                <div class="form-group"><label>Usuario</label><input type="text" id="log_user" value="cliente1"></div>
+                <div class="form-group"><label>Contraseña</label><input type="password" id="log_pass" value="12345"></div>
+                <button class="btn-action" onclick="iniciarSesion()">AUTENTICAR PORTAL &rarr;</button>
+
+                <div class="login-presets">
+                    <p>Accesos preconfigurados:</p>
+                    <span class="preset-badge" onclick="setLogin('cliente1')">Cliente</span>
+                    <span class="preset-badge" onclick="setLogin('tecnico1')">Técnico</span>
+                    <span class="preset-badge" onclick="setLogin('asesor1')">Asesor</span>
+                </div>
+            </div>
+
+            <!-- FORM REGISTRO -->
+            <div id="form_registro_container" style="display:none;">
+                <div class="form-group"><label>Nombre Completo</label><input type="text" id="reg_nombre" placeholder="Ej. Juan Pérez"></div>
+                <div class="form-group"><label>Nombre de Usuario</label><input type="text" id="reg_user" placeholder="juanp"></div>
+                <div class="form-group"><label>Contraseña</label><input type="password" id="reg_pass" placeholder="Mínimo 4 caracteres"></div>
+                <div class="form-group">
+                    <label>Rol Asignado</label>
+                    <select id="reg_rol">
+                        <option value="Cliente">Cliente (Propietario / Comprador)</option>
+                        <option value="Tecnico">Técnico (Diagnóstico y Operación)</option>
+                        <option value="Asesor">Asesor (Comercial y Garantías)</option>
+                    </select>
+                </div>
+                <button class="btn-action" onclick="registrarUsuario()">REGISTRAR Y ACCEDER &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER CON USUARIO ACTIVO -->
+    <header>
+        <div>
+            <span style="background:var(--accent-red); color:#fff; padding:4px 8px; border-radius:2px;">AUTO-CORE</span>
+            <span>PORTAL UNIFICADO // RBAC</span>
+        </div>
+        <div class="user-tag" id="user_display" style="display:none;">
+            <span>SESION: <strong id="lbl_nombre" style="color:#fff;"></strong> (<span id="lbl_rol" style="color:var(--accent-red);"></span>)</span>
+            <button class="btn-logout" onclick="cerrarSesion()">SALIR</button>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1>ACCESO Y GESTIÓN AUTOMOTRIZ</h1>
+        <div class="highlight" id="lbl_modulo_actual">MANTENIMIENTO &bull; COMPRA/VENTA &bull; GARANTÍAS</div>
+        <div class="hero-sub" id="role_description">SELECCIONA O INICIA SESIÓN PARA CONTINUAR</div>
+    </div>
+
+    <!-- FORMULARIOS OPERATIVOS -->
+    <div class="grid-forms">
+        <div class="card" id="card_cliente">
+            <div class="card-header">
+                <div><span>01 //</span> REGISTRO TITULAR</div>
+                <small style="color:var(--text-muted)">CLIENTE / ASESOR</small>
+            </div>
+            <div class="form-group"><label>Nombre Completo *</label><input type="text" id="c_nombre" placeholder="Ej. Carlos Mendoza"></div>
+            <div class="form-group"><label>Documento de Identidad *</label><input type="text" id="c_doc" placeholder="C.C. / NIT"></div>
+            <div class="form-group"><label>Teléfono *</label><input type="text" id="c_tel" placeholder="+57 300 000 0000"></div>
+            <div class="form-group"><label>Correo Electrónico</label><input type="email" id="c_email" placeholder="cliente@correo.com"></div>
+            <button class="btn-action" onclick="guardarCliente()">VINCULAR CLIENTE &rarr;</button>
+        </div>
+
+        <div class="card" id="card_vehiculo">
+            <div class="card-header">
+                <div><span>02 //</span> VINCULACIÓN VEHÍCULO</div>
+                <small style="color:var(--text-muted)">UNIDAD</small>
+            </div>
+            <div class="form-group"><label>Placa *</label><input type="text" id="v_placa" class="input-placa" placeholder="ABC-123" maxlength="7"></div>
+            <div class="form-group"><label>Marca *</label><input type="text" id="v_marca" placeholder="Ej. Renault"></div>
+            <div class="form-group"><label>Modelo / Línea *</label><input type="text" id="v_modelo" placeholder="Ej. Sandero"></div>
+            <div class="form-group"><label>Año *</label><input type="number" id="v_anio" value="2022"></div>
+            <div class="form-group"><label>ID Cliente Propietario *</label><input type="number" id="v_cliente_id" placeholder="ID del Módulo 01"></div>
+            <button class="btn-action" onclick="guardarVehiculo()">REGISTRAR UNIDAD &rarr;</button>
+        </div>
+
+        <div class="card" id="card_orden">
+            <div class="card-header">
+                <div><span>03 //</span> RADICACIÓN DE SERVICIO</div>
+                <small style="color:var(--text-muted)">SOLICITUD</small>
+            </div>
+            <div class="form-group">
+                <label>Línea de Negocio / Servicio *</label>
+                <select id="o_tipo_servicio">
+                    <option value="Mantenimiento">Mantenimiento (Preventivo / Correctivo)</option>
+                    <option value="Compra/Venta">Compra / Venta (Peritaje e Inspección)</option>
+                    <option value="Garantia">Garantía (Reclamación Técnica)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>ID del Vehículo *</label><input type="number" id="o_vehiculo_id" placeholder="ID de unidad"></div>
+            <div class="form-group"><label>Motivo / Falla / Diagnóstico *</label><textarea id="o_diag" rows="3" placeholder="Detalle la solicitud..."></textarea></div>
+            <div class="form-group" id="grupo_costo" style="display:none;"><label>Liquidación (Solo Asesor)</label><input type="number" id="o_costo" value="0"></div>
+            <button class="btn-action" onclick="guardarOrden()">EMITIR TICKET &rarr;</button>
+        </div>
+    </div>
+
+    <div class="table-panel">
+        <div class="card-header">
+            <div><span>04 //</span> TICKETS Y PROCESOS ACTIVOS</div>
+            <button onclick="cargarOrdenes()" style="background:transparent; border:1px solid var(--border-tech); color:var(--text-muted); padding:3px 8px; font-size:10px; cursor:pointer;">REFRESCAR</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticket ID</th>
+                    <th>Servicio</th>
+                    <th>Unidad</th>
+                    <th>Motivo / Diagnóstico</th>
+                    <th>Estado</th>
+                    <th id="th_costo" style="display:none;">Liquidación</th>
+                    <th>Acciones Permitidas</th>
+                </tr>
+            </thead>
+            <tbody id="tabla_ordenes"></tbody>
+        </table>
+    </div>
+
+    <div class="table-panel" id="panel_trazabilidad">
+        <div class="card-header">
+            <div><span>05 //</span> TRAZABILIDAD Y AUDITORÍA INMUTABLE</div>
+            <button onclick="cargarTrazabilidad()" style="background:transparent; border:1px solid var(--border-tech); color:var(--text-muted); padding:3px 8px; font-size:10px; cursor:pointer;">ACTUALIZAR LOGS</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Log ID</th>
+                    <th>Usuario Responsable</th>
+                    <th>Rol</th>
+                    <th>Servicio</th>
+                    <th>Unidad ID</th>
+                    <th>Acción Auditada</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody id="tabla_trazabilidad"></tbody>
+        </table>
+    </div>
+
+    <footer>
+        <div>AUTO-CORE RBAC ARCHITECTURE // 2026</div>
+        <div>ACCESO SEGREGADO POR ROLES</div>
+    </footer>
+
+    <script>
+        var sesionUsuario = null;
+
+        function mostrarTab(tab) {
+            var tabLogin = document.getElementById('tab_login');
+            var tabReg = document.getElementById('tab_registro');
+            var formLogin = document.getElementById('form_login_container');
+            var formReg = document.getElementById('form_registro_container');
+
+            if (tab === 'login') {
+                tabLogin.classList.add('active');
+                tabReg.classList.remove('active');
+                formLogin.style.display = 'block';
+                formReg.style.display = 'none';
+            } else {
+                tabReg.classList.add('active');
+                tabLogin.classList.remove('active');
+                formLogin.style.display = 'none';
+                formReg.style.display = 'block';
+            }
+        }
+
+        function setLogin(u) {
+            document.getElementById('log_user').value = u;
+            document.getElementById('log_pass').value = "12345";
+        }
+
+        function iniciarSesion() {
+            var u = document.getElementById('log_user').value.trim();
+            var p = document.getElementById('log_pass').value.trim();
+
+            if (!u || !p) {
+                alert('Ingresa usuario y contraseña');
+                return;
+            }
+
+            fetch('/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            })
+            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(function(resObj) {
+                if (resObj.ok) {
+                    establecerSesion(resObj.data);
+                } else {
+                    alert('Error: ' + resObj.data.detail);
+                }
+            })
+            .catch(function(err) { alert('Error de conexion'); });
+        }
+
+        function registrarUsuario() {
+            var nom = document.getElementById('reg_nombre').value.trim();
+            var usr = document.getElementById('reg_user').value.trim();
+            var pas = document.getElementById('reg_pass').value.trim();
+            var rol = document.getElementById('reg_rol').value;
+
+            if (!nom || !usr || !pas) {
+                alert('Completa todos los campos para registrar el usuario.');
+                return;
+            }
+
+            fetch('/auth/registro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre_completo: nom, username: usr, password: pas, rol: rol })
+            })
+            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(function(resObj) {
+                if (resObj.ok) {
+                    alert('USUARIO CREADO CORRECTAMENTE // ROL: ' + resObj.data.rol);
+                    establecerSesion(resObj.data);
+                } else {
+                    alert('Error: ' + JSON.stringify(resObj.data.detail));
+                }
+            })
+            .catch(function(err) { alert('Error de conexion'); });
+        }
+
+        function establecerSesion(data) {
+            sesionUsuario = data;
+            document.getElementById('login_overlay').style.display = 'none';
+            document.getElementById('user_display').style.display = 'flex';
+            document.getElementById('lbl_nombre').innerText = sesionUsuario.nombre_completo;
+            document.getElementById('lbl_rol').innerText = sesionUsuario.rol.toUpperCase();
+            aplicarPermisosPorRol();
+            cargarOrdenes();
+            cargarTrazabilidad();
+        }
+
+        function cerrarSesion() {
+            sesionUsuario = null;
+            document.getElementById('login_overlay').style.display = 'flex';
+            document.getElementById('user_display').style.display = 'none';
+            mostrarTab('login');
+        }
+
+        function aplicarPermisosPorRol() {
+            var rol = sesionUsuario.rol;
+            var desc = document.getElementById('role_description');
+            var cardCliente = document.getElementById('card_cliente');
+            var cardOrden = document.getElementById('card_orden');
+            var grupoCosto = document.getElementById('grupo_costo');
+            var thCosto = document.getElementById('th_costo');
+            var panelTrazabilidad = document.getElementById('panel_trazabilidad');
+
+            if (rol === "Cliente") {
+                desc.innerText = "PANEL CLIENTE: SOLICITUD DE SERVICIOS Y SEGUIMIENTO";
+                cardCliente.style.display = "block";
+                cardOrden.style.display = "block";
+                grupoCosto.style.display = "none";
+                thCosto.style.display = "none";
+                panelTrazabilidad.style.display = "none";
+            } else if (rol === "Tecnico") {
+                desc.innerText = "PANEL TÉCNICO: PERITAJES, INSPECCIONES Y EJECUCIÓN OPERATIVA";
+                cardCliente.style.display = "none";
+                cardOrden.style.display = "none";
+                grupoCosto.style.display = "none";
+                thCosto.style.display = "none";
+                panelTrazabilidad.style.display = "block";
+            } else if (rol === "Asesor") {
+                desc.innerText = "PANEL ASESOR: GESTIÓN COMERCIAL, ASIGNACIÓN Y LIQUIDACIÓN";
+                cardCliente.style.display = "block";
+                cardOrden.style.display = "block";
+                grupoCosto.style.display = "block";
+                thCosto.style.display = "table-cell";
+                panelTrazabilidad.style.display = "block";
+            }
+        }
+
+        function guardarCliente() {
+            var n = document.getElementById('c_nombre').value.trim();
+            var d = document.getElementById('c_doc').value.trim();
+            var t = document.getElementById('c_tel').value.trim();
+            var e = document.getElementById('c_email').value.trim();
+
+            if (!n || !d || !t) {
+                alert('Completa nombre, documento y teléfono.');
+                return;
+            }
+
+            fetch('/clientes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre: n, documento: d, telefono: t, email: e || null })
+            })
+            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(function(resObj) {
+                if (resObj.ok) {
+                    alert('CLIENTE VINCULADO // ID: ' + resObj.data.id);
+                    document.getElementById('v_cliente_id').value = resObj.data.id;
+                } else {
+                    alert('Error: ' + JSON.stringify(resObj.data.detail));
+                }
+            })
+            .catch(function(err) { alert('Error de conexión'); });
+        }
+
+        function guardarVehiculo() {
+            var p = document.getElementById('v_placa').value.trim().toUpperCase();
+            var m = document.getElementById('v_marca').value.trim();
+            var mod = document.getElementById('v_modelo').value.trim();
+            var a = parseInt(document.getElementById('v_anio').value);
+            var cid = parseInt(document.getElementById('v_cliente_id').value);
+
+            if (!p || !m || !mod || isNaN(a) || isNaN(cid)) {
+                alert('Completa todos los campos del vehículo.');
+                return;
+            }
+
+            fetch('/vehiculos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ placa: p, marca: m, modelo: mod, anio: a, cliente_id: cid })
+            })
+            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(function(resObj) {
+                if (resObj.ok) {
+                    alert('UNIDAD REGISTRADA // ID: ' + resObj.data.id);
+                    document.getElementById('o_vehiculo_id').value = resObj.data.id;
+                } else {
+                    alert('Error: ' + JSON.stringify(resObj.data.detail));
+                }
+            })
+            .catch(function(err) { alert('Error de conexión'); });
+        }
+
+        function guardarOrden() {
+            var vid = parseInt(document.getElementById('o_vehiculo_id').value);
+            var srv = document.getElementById('o_tipo_servicio').value;
+            var diag = document.getElementById('o_diag').value.trim();
+            var costo = (sesionUsuario && sesionUsuario.rol === "Asesor") ? parseFloat(document.getElementById('o_costo').value || 0) : 0;
+
+            if (isNaN(vid) || !diag) {
+                alert('Indica ID de vehículo y diagnóstico.');
+                return;
+            }
+
+            var body = {
+                vehiculo_id: vid,
+                tipo_servicio: srv,
+                diagnostico: diag,
+                estado: "Solicitado",
+                costo_total: costo,
+                rol_solicitante: sesionUsuario.rol,
+                nombre_solicitante: sesionUsuario.nombre_completo
+            };
+
+            fetch('/ordenes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            })
+            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(function(resObj) {
+                if (resObj.ok) {
+                    alert('TICKET DIGITAL EMITIDO // SERVICIO: ' + srv);
+                    cargarOrdenes();
+                    cargarTrazabilidad();
+                } else {
+                    alert('Error: ' + JSON.stringify(resObj.data.detail));
+                }
+            })
+            .catch(function(err) { alert('Error de conexión'); });
+        }
+
+        function cambiarEstadoOrden(id, nuevoEstado) {
+            var obs = prompt("Observación o justificación (" + sesionUsuario.rol + "):", "Avance de orden");
+            if (obs === null) return;
+
+            fetch('/ordenes/' + id + '/estado', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    estado: nuevoEstado,
+                    rol_responsable: sesionUsuario.rol,
+                    nombre_responsable: sesionUsuario.nombre_completo,
+                    observacion_tecnica: obs
+                })
+            })
+            .then(function(res) {
+                if (res.ok) {
+                    cargarOrdenes();
+                    cargarTrazabilidad();
+                } else {
+                    alert("No se pudo actualizar el estado");
+                }
+            });
+        }
+
+        function cargarOrdenes() {
+            if (!sesionUsuario) return;
+            fetch('/ordenes')
+            .then(function(res) { return res.json(); })
+            .then(function(ordenes) {
+                var tbody = document.getElementById('tabla_ordenes');
+                tbody.innerHTML = '';
+                ordenes.forEach(function(o) {
+                    var tr = document.createElement('tr');
+                    var botonesAccion = '';
+
+                    if (sesionUsuario.rol === "Tecnico") {
+                        botonesAccion = 
+                            '<button class="btn-status" onclick="cambiarEstadoOrden(' + o.id + ', \'En Inspección\')">INSPECCIONAR</button>' +
+                            '<button class="btn-status" onclick="cambiarEstadoOrden(' + o.id + ', \'Técnicamente Finalizado\')">FINALIZAR</button>';
+                    } else if (sesionUsuario.rol === "Asesor") {
+                        botonesAccion = 
+                            '<button class="btn-status" onclick="cambiarEstadoOrden(' + o.id + ', \'Cotizado\')">COTIZAR</button>' +
+                            '<button class="btn-status" onclick="cambiarEstadoOrden(' + o.id + ', \'Cerrado Administrativo\')">CERRAR</button>';
+                    } else {
+                        botonesAccion = '<span style="color:var(--text-muted); font-size:10px;">EN SEGUIMIENTO</span>';
+                    }
+
+                    var tdCosto = (sesionUsuario.rol === "Asesor") ? ('<td>$' + parseFloat(o.costo_total).toLocaleString() + '</td>') : '';
+
+                    tr.innerHTML = 
+                        '<td><strong>#TK-' + String(o.id).padStart(4, '0') + '</strong></td>' +
+                        '<td><span class="role-tag">' + (o.tipo_servicio || 'Mantenimiento') + '</span></td>' +
+                        '<td>UNIDAD-' + o.vehiculo_id + '</td>' +
+                        '<td>' + o.diagnostico + '</td>' +
+                        '<td><span class="status-badge">' + o.estado + '</span></td>' +
+                        tdCosto +
+                        '<td>' + botonesAccion + '</td>';
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(function(err) { console.log(err); });
+        }
+
+        function cargarTrazabilidad() {
+            if (!sesionUsuario || sesionUsuario.rol === "Cliente") return;
+            fetch('/trazabilidad')
+            .then(function(res) { return res.json(); })
+            .then(function(logs) {
+                var tbody = document.getElementById('tabla_trazabilidad');
+                tbody.innerHTML = '';
+                logs.forEach(function(l) {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = 
+                        '<td>#' + l.id + '</td>' +
+                        '<td>' + l.usuario + '</td>' +
+                        '<td><span class="role-tag">' + l.rol + '</span></td>' +
+                        '<td>' + l.servicio + '</td>' +
+                        '<td>UNIDAD-' + l.vehiculo_id + '</td>' +
+                        '<td>' + l.accion + '</td>' +
+                        '<td>' + new Date(l.fecha).toLocaleString() + '</td>';
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(function(err) { console.log(err); });
+        }
+    </script>
+</body>
+</html>
