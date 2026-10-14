@@ -169,4 +169,8 @@ def listar_mensajes_orden(orden_id: int, db: Session = Depends(get_db)):
 # --- TRAZABILIDAD ---
 @router.get("/trazabilidad", response_model=List[schemas.TrazabilidadResponse], tags=["Auditoria"])
 def listar_trazabilidad(db: Session = Depends(get_db)):
+<<<<<<< HEAD
     return db.query(models.Trazabilidad).order_by(models.Trazabilidad.id.desc()).all()
+=======
+    return db.query(models.Trazabilidad).order_by(models.Trazabilidad.id.desc()).all()
+>>>>>>> be3331f48e28d95f66a3b7a6bfdd7498a5a201ae

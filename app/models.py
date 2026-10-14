@@ -81,4 +81,8 @@ class Trazabilidad(Base):
     vehiculo_id = Column(Integer, ForeignKey("vehiculos.id"), nullable=False)
     accion = Column(String(255), nullable=False)
 
+<<<<<<< HEAD
     vehiculo = relationship("Vehiculo", back_populates="auditorias")
+=======
+    vehiculo = relationship("Vehiculo", back_populates="auditorias")
+>>>>>>> be3331f48e28d95f66a3b7a6bfdd7498a5a201ae
