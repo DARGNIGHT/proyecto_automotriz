@@ -171,6 +171,5 @@ def listar_mensajes_orden(orden_id: int, db: Session = Depends(get_db)):
 def listar_trazabilidad(db: Session = Depends(get_db)):
 
     return db.query(models.Trazabilidad).order_by(models.Trazabilidad.id.desc()).all()
-=======
+
     return db.query(models.Trazabilidad).order_by(models.Trazabilidad.id.desc()).all()
->>>>>>> be3331f48e28d95f66a3b7a6bfdd7498a5a201ae
