@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 async function guardarCliente() {
     const nombre = document.getElementById('c_nombre').value.trim();
     const doc = document.getElementById('c_doc').value.trim();

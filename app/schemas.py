@@ -104,8 +104,7 @@ class TrazabilidadResponse(BaseModel):
     vehiculo_id: int
     accion: str
     class Config:
-<<<<<<< HEAD
+
         from_attributes = True
-=======
         from_attributes = True
->>>>>>> be3331f48e28d95f66a3b7a6bfdd7498a5a201ae
+
