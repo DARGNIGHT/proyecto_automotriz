@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 import bcrypt
@@ -37,7 +37,7 @@ def login(credenciales: schemas.LoginRequest, db: Session = Depends(get_db)):
 @router.post("/clientes", response_model=schemas.ClienteResponse, tags=["Clientes"])
 def crear_cliente(cliente: schemas.ClienteCreate, db: Session = Depends(get_db)):
     if db.query(models.Cliente).filter(models.Cliente.documento == cliente.documento).first():
-        raise HTTPException(status_code=400, detail="Documento ya registrado")
+        raise HTTPException(status_code=400, detail="Documento ya registrado (Control de duplicados)")
     nuevo = models.Cliente(**cliente.dict())
     db.add(nuevo)
     db.commit()
@@ -50,9 +50,12 @@ def listar_clientes(db: Session = Depends(get_db)):
 
 @router.post("/vehiculos", response_model=schemas.VehiculoResponse, tags=["Vehiculos"])
 def crear_vehiculo(vehiculo: schemas.VehiculoCreate, db: Session = Depends(get_db)):
-    if db.query(models.Vehiculo).filter(models.Vehiculo.placa == vehiculo.placa).first():
-        raise HTTPException(status_code=400, detail="Placa ya registrada")
-    nuevo = models.Vehiculo(**vehiculo.dict())
+    placa_limpia = vehiculo.placa.strip().upper()
+    if db.query(models.Vehiculo).filter(models.Vehiculo.placa == placa_limpia).first():
+        raise HTTPException(status_code=400, detail="Placa ya registrada (Control de duplicados)")
+    datos = vehiculo.dict()
+    datos["placa"] = placa_limpia
+    nuevo = models.Vehiculo(**datos)
     db.add(nuevo)
     db.commit()
     db.refresh(nuevo)
@@ -84,7 +87,7 @@ def crear_orden(orden: schemas.OrdenCreate, db: Session = Depends(get_db)):
         rol=orden.rol_solicitante or "Cliente",
         servicio=orden.tipo_servicio,
         vehiculo_id=orden.vehiculo_id,
-        accion=f"Creacion de ticket #{nueva.id} [{orden.tipo_servicio}]"
+        accion=f"Creacion de orden Cero Papel #{nueva.id} [{orden.tipo_servicio}]"
     )
     db.add(log)
     db.commit()
@@ -100,6 +103,24 @@ def actualizar_orden_operativo(orden_id: int, payload: schemas.OrdenUpdateOperat
     if not orden:
         raise HTTPException(status_code=404, detail="Orden no encontrada")
     
+    # BLOQUEO DE SEGURIDAD MECANICLARO: Impedir alteracion de costos sin aprobacion previa del cliente
+    if payload.costo_total is not None and float(payload.costo_total) != float(orden.costo_total or 0):
+        cot_aprobada = db.query(models.CotizacionRepuesto).filter(
+            models.CotizacionRepuesto.orden_id == orden_id,
+            models.CotizacionRepuesto.aprobada_cliente == True
+        ).first()
+        if not cot_aprobada:
+            raise HTTPException(
+                status_code=403,
+                detail="Bloqueo MecaniClaro: No se puede alterar el costo ni liquidar sin aprobacion previa de una cotizacion por parte del conductor."
+            )
+        total_autorizado = float(cot_aprobada.precio) + float(cot_aprobada.mano_obra)
+        if abs(float(payload.costo_total) - total_autorizado) > 1:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Bloqueo MecaniClaro: El valor (${payload.costo_total:,.0f}) difiere del presupuesto autorizado por el conductor (${total_autorizado:,.0f})."
+            )
+
     estado_ant = orden.estado
     orden.estado = payload.estado
     
@@ -132,6 +153,101 @@ def actualizar_orden_operativo(orden_id: int, payload: schemas.OrdenUpdateOperat
     db.commit()
     return orden
 
+# --- COMPARATIVA DE 3 COTIZACIONES Y APROBACION DEL CONDUCTOR ---
+@router.post("/ordenes/{orden_id}/cotizaciones", response_model=schemas.CotizacionResponse, tags=["Cotizaciones"])
+def agregar_cotizacion(orden_id: int, cot: schemas.CotizacionCreate, db: Session = Depends(get_db)):
+    orden = db.query(models.OrdenServicio).filter(models.OrdenServicio.id == orden_id).first()
+    if not orden:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+
+    # Impedir alteraciones si el cliente ya aprobó una cotización
+    ya_aprobada = db.query(models.CotizacionRepuesto).filter(
+        models.CotizacionRepuesto.orden_id == orden_id,
+        models.CotizacionRepuesto.aprobada_cliente == True
+    ).first()
+    if ya_aprobada or orden.estado in ["Aprobado por Cliente", "Liquidado y Cerrado"]:
+        raise HTTPException(
+            status_code=403,
+            detail="La orden ya cuenta con una cotizacion aprobada por el conductor; no se permiten alteraciones sin autorizacion."
+        )
+
+    # Control de duplicados: mismo proveedor y repuesto en la misma orden
+    duplicada = db.query(models.CotizacionRepuesto).filter(
+        models.CotizacionRepuesto.orden_id == orden_id,
+        models.CotizacionRepuesto.proveedor == cot.proveedor.strip(),
+        models.CotizacionRepuesto.nombre_repuesto == cot.nombre_repuesto.strip()
+    ).first()
+    if duplicada:
+        raise HTTPException(
+            status_code=400,
+            detail="Control de duplicados: Ya registraste este proveedor para ese repuesto en esta orden."
+        )
+
+    nueva_cot = models.CotizacionRepuesto(
+        orden_id=orden_id,
+        proveedor=cot.proveedor.strip(),
+        nombre_repuesto=cot.nombre_repuesto.strip(),
+        marca=cot.marca.strip(),
+        precio=cot.precio,
+        mano_obra=cot.mano_obra or 0.0
+    )
+    db.add(nueva_cot)
+    orden.estado = "Esperando Aprobación Cliente"
+    db.commit()
+    db.refresh(nueva_cot)
+
+    total_cot = float(cot.precio) + float(cot.mano_obra or 0)
+    log = models.Trazabilidad(
+        usuario=cot.usuario_responsable or "Asesor",
+        rol="Asesor",
+        servicio=orden.tipo_servicio,
+        vehiculo_id=orden.vehiculo_id,
+        accion=f"Cotizacion registrada Ticket #{orden_id}: Proveedor {cot.proveedor} ({cot.nombre_repuesto} - {cot.marca}) Total ${total_cot:,.0f}"
+    )
+    db.add(log)
+    db.commit()
+    return nueva_cot
+
+@router.get("/ordenes/{orden_id}/cotizaciones", response_model=List[schemas.CotizacionResponse], tags=["Cotizaciones"])
+def listar_cotizaciones_orden(orden_id: int, db: Session = Depends(get_db)):
+    return db.query(models.CotizacionRepuesto).filter(models.CotizacionRepuesto.orden_id == orden_id).order_by(models.CotizacionRepuesto.precio.asc()).all()
+
+@router.post("/ordenes/{orden_id}/cotizaciones/{cotizacion_id}/aprobar", response_model=schemas.OrdenResponse, tags=["Cotizaciones"])
+def aprobar_cotizacion_cliente(orden_id: int, cotizacion_id: int, req: schemas.AprobacionClienteRequest, db: Session = Depends(get_db)):
+    orden = db.query(models.OrdenServicio).filter(models.OrdenServicio.id == orden_id).first()
+    if not orden:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+
+    cot = db.query(models.CotizacionRepuesto).filter(
+        models.CotizacionRepuesto.id == cotizacion_id,
+        models.CotizacionRepuesto.orden_id == orden_id
+    ).first()
+    if not cot:
+        raise HTTPException(status_code=404, detail="Cotizacion no encontrada")
+
+    # Desmarcar otras y aprobar la elegida
+    todas = db.query(models.CotizacionRepuesto).filter(models.CotizacionRepuesto.orden_id == orden_id).all()
+    for c in todas:
+        c.aprobada_cliente = (c.id == cotizacion_id)
+
+    total_aprobado = float(cot.precio) + float(cot.mano_obra)
+    orden.costo_total = total_aprobado
+    orden.repuestos_usados = f"{cot.nombre_repuesto} ({cot.marca}) - Prov: {cot.proveedor}"
+    orden.estado = "Aprobado por Cliente"
+    db.commit()
+    db.refresh(orden)
+
+    log = models.Trazabilidad(
+        usuario=req.nombre_cliente or "Conductor",
+        rol="Cliente",
+        servicio=orden.tipo_servicio,
+        vehiculo_id=orden.vehiculo_id,
+        accion=f"APROBACION DIGITAL Ticket #{orden_id}: Autorizo proveedor {cot.proveedor} ({cot.nombre_repuesto}) por ${total_aprobado:,.0f}. Presupuesto bloqueado contra alteraciones."
+    )
+    db.add(log)
+    db.commit()
+    return orden
+
 # --- CANAL DIRECTO DE NOVEDADES (CHAT / MENSAJES) ---
 @router.post("/ordenes/{orden_id}/mensajes", response_model=schemas.MensajeResponse, tags=["Novedades"])
 def registrar_mensaje(orden_id: int, msg: schemas.MensajeCreate, db: Session = Depends(get_db)):
@@ -149,7 +265,6 @@ def registrar_mensaje(orden_id: int, msg: schemas.MensajeCreate, db: Session = D
     db.commit()
     db.refresh(nuevo_mensaje)
 
-    # Registrar en auditoría la alerta
     log = models.Trazabilidad(
         usuario=msg.remitente,
         rol=msg.rol,
@@ -169,7 +284,4 @@ def listar_mensajes_orden(orden_id: int, db: Session = Depends(get_db)):
 # --- TRAZABILIDAD ---
 @router.get("/trazabilidad", response_model=List[schemas.TrazabilidadResponse], tags=["Auditoria"])
 def listar_trazabilidad(db: Session = Depends(get_db)):
-
-    return db.query(models.Trazabilidad).order_by(models.Trazabilidad.id.desc()).all()
-
     return db.query(models.Trazabilidad).order_by(models.Trazabilidad.id.desc()).all()
