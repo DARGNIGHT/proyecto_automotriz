@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel
+from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
 
@@ -47,6 +47,30 @@ class VehiculoResponse(VehiculoBase):
     id: int
     class Config:
         from_attributes = True
+
+class CotizacionCreate(BaseModel):
+    proveedor: str
+    nombre_repuesto: str
+    marca: str
+    precio: float
+    mano_obra: Optional[float] = 0.0
+    usuario_responsable: Optional[str] = "Asesor"
+
+class CotizacionResponse(BaseModel):
+    id: int
+    orden_id: int
+    proveedor: str
+    nombre_repuesto: str
+    marca: str
+    precio: float
+    mano_obra: float
+    aprobada_cliente: bool
+    fecha: datetime
+    class Config:
+        from_attributes = True
+
+class AprobacionClienteRequest(BaseModel):
+    nombre_cliente: str
 
 class OrdenBase(BaseModel):
     vehiculo_id: int
@@ -104,7 +128,4 @@ class TrazabilidadResponse(BaseModel):
     vehiculo_id: int
     accion: str
     class Config:
-
         from_attributes = True
-        from_attributes = True
-
