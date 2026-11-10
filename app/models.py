@@ -1,5 +1,5 @@
-﻿from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, Numeric, DateTime, ForeignKey
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Text, Numeric, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -46,7 +46,7 @@ class OrdenServicio(Base):
     vehiculo_id = Column(Integer, ForeignKey("vehiculos.id"), nullable=False)
     tipo_servicio = Column(String(30), default="Mantenimiento", nullable=False)
     diagnostico = Column(Text, nullable=False)
-    estado = Column(String(30), default="Solicitado")
+    estado = Column(String(40), default="Solicitado")
     costo_total = Column(Numeric(10, 2), default=0.0)
     fecha_creacion = Column(DateTime, default=datetime.utcnow)
     
@@ -57,6 +57,22 @@ class OrdenServicio(Base):
 
     vehiculo = relationship("Vehiculo", back_populates="ordenes")
     mensajes = relationship("MensajeNovedad", back_populates="orden")
+    cotizaciones = relationship("CotizacionRepuesto", back_populates="orden")
+
+class CotizacionRepuesto(Base):
+    __tablename__ = "cotizaciones_repuestos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    orden_id = Column(Integer, ForeignKey("ordenes_servicio.id"), nullable=False)
+    proveedor = Column(String(100), nullable=False)
+    nombre_repuesto = Column(String(100), nullable=False)
+    marca = Column(String(50), nullable=False)
+    precio = Column(Numeric(10, 2), nullable=False)
+    mano_obra = Column(Numeric(10, 2), default=0.0)
+    aprobada_cliente = Column(Boolean, default=False)
+    fecha = Column(DateTime, default=datetime.utcnow)
+
+    orden = relationship("OrdenServicio", back_populates="cotizaciones")
 
 class MensajeNovedad(Base):
     __tablename__ = "mensajes_novedad"
